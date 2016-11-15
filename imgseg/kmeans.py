@@ -9,7 +9,7 @@ import math
 
 _CLUSTER_COLORS = [(0, 0, 0), (255, 0, 0), (0, 255, 0), (0, 0, 255)]
 
-def distance(pixelA, pixelB):
+def _distance(pixelA, pixelB):
     assert(len(pixelA) >= 3 and len(pixelB) >= 3)
     dist = np.float64(0)
     for i in range(3):
@@ -17,19 +17,19 @@ def distance(pixelA, pixelB):
 
     return dist
 
-def assign_clusters(img, pixels, clusters, k):
+def _assign_clusters(img, pixels, clusters, k):
     # assign pixels to clusters
     for y in range(img.shape[0]):
         for x in range(img.shape[1]):
-            # find minimal distance for this pixel
+            # find minimal _distance for this pixel
             min_dist = (-1, 0)
             for i in range(k):
-                dist = distance(img[y, x], clusters[i])
+                dist = _distance(img[y, x], clusters[i])
                 if min_dist[0] < 0 or dist < min_dist[1]:
                     min_dist = (i, dist)
             pixels[y, x] = min_dist[0]
 
-def calc_clusters_mean(img, pixels, clusters_next, clusters_count, k):
+def _calc_clusters_mean(img, pixels, clusters_next, clusters_count, k):
     # calculate rgb sum per cluster
     clusters_count.fill(0)
     clusters_next.fill(0)
@@ -45,7 +45,7 @@ def calc_clusters_mean(img, pixels, clusters_next, clusters_count, k):
         for b in range(3):
             clusters_next[i][b] /= clusters_count[i]
 
-def move_cluster_center(clusters, clusters_next, k):
+def _move_cluster_center(clusters, clusters_next, k):
     # move cluster center and check if it has changed
     cluster_moved = False
     for i in range(k):
@@ -67,12 +67,12 @@ def kmeans(img, k):
     pixels = np.empty((img.shape[0], img.shape[1]), dtype=np.uint8)
     cluster_moved = True
     while cluster_moved:
-        assign_clusters(img, pixels, clusters, k)
-        calc_clusters_mean(img, pixels, clusters_next, clusters_count, k)
+        _assign_clusters(img, pixels, clusters, k)
+        _calc_clusters_mean(img, pixels, clusters_next, clusters_count, k)
         print('---------------')
         print(clusters)
         print(clusters_next)
-        cluster_moved = move_cluster_center(clusters, clusters_next, k)
+        cluster_moved = _move_cluster_center(clusters, clusters_next, k)
 
     result = np.empty((img.shape[0], img.shape[1] , 3), dtype=np.uint8)
     for y in range(img.shape[0]):
