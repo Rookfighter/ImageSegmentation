@@ -115,6 +115,7 @@ def gaussian(img, k):
     print('-- u = {}'.format(gparambg['u']))
     print('-- cov = {}'.format(gparambg['cov']))
     print('-- w = {}'.format(gparambg['w']))
+
     # create gaussians with estimated params
     gaussfg = [scipy.stats.multivariate_normal(gparamfg['u'][i], gparamfg['cov'][i]) for i in range(k)]
     gaussbg = [scipy.stats.multivariate_normal(gparambg['u'][i], gparambg['cov'][i]) for i in range(k)]
@@ -122,16 +123,19 @@ def gaussian(img, k):
     print('Create result picture ...')
     # create result picture on trained gaussians
     result = np.zeros((img.shape[0], img.shape[1], _DIM), dtype=np.uint8)
+    img_vec = img.reshape((img.shape[0] * img.shape[1], _DIM))
+
+    probfg = np.zeros((img_vec.shape[0]))
+    probbg = np.zeros((img_vec.shape[0]))
+    for i in range(k):
+        probfg += gaussfg[i].pdf(img_vec)
+        probbg += gaussbg[i].pdf(img_vec)
+
     for y in range(img.shape[0]):
         for x in range(img.shape[1]):
-            probfg = 0
-            probbg = 0
-            for i in range(k):
-                probfg += gparamfg['w'][i] * gaussfg[i].pdf(img[y, x])
-                probbg += gparambg['w'][i] * gaussbg[i].pdf(img[y, x])
+            i = y * img.shape[1] + x
 
-            # if foreground has higher prob color the pixel yellow
-            if probfg >= probbg:
+            if probfg[i] >= probbg[i]:
                 result[y, x, :] = np.array([255, 255, 0])
             else:
                 result[y, x, :] = np.array([0, 0, 0])
